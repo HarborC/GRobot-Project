@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<launch>
+    <!-- Balser -->
+    <node name="pylon_camera_publisher" pkg="pylon_camera" type="pylon_camera_node" output="screen">
+        <rosparam command="load" file="$(find pylon_camera)/config/default.yaml" />
+    </node>
+
+    <!-- Livox -->
+	<param name="xfer_format" value="1"/>
+	<param name="multi_topic" value="0"/>
+	<param name="data_src" value="0"/>
+	<param name="publish_freq" type="double" value="10"/>
+	<param name="output_data_type" value="0"/>
+	<param name="cmdline_str" type="string" value="100000000000000"/>
+	<param name="cmdline_arg" type="string" value="$(arg cmdline_str)"/>
+	<param name="cmdline_file_path" type="string" value="livox_test.lvx"/>
+	<param name="user_config_path" type="string" value="$(find sensor_publisher)/config/livox_lidar_config.json"/>	
+	<param name="frame_id" type="string" value="livox_frame"/>
+	<param name="enable_lidar_bag" type="bool" value="true"/>
+	<param name="enable_imu_bag" type="bool" value="true"/>
+	<node name="livox_lidar_publisher" pkg="livox_ros_driver" type="livox_ros_driver_node" required="true"
+	      output="screen" args="$(arg cmdline_arg)"/>
+
+	<node name="livox_lidar_publisher" pkg="livox_ros_driver" type="livox_ros_driver_node" required="true"
+	      output="screen" args="$(arg cmdline_arg)"/>
+
+	<!-- Rviz -->
+    <node name="rviz" pkg="rviz" type="rviz" respawn="true"
+          args="-d $(find sensor_publisher)/launch/display.rviz"/>
+
+	<!-- sensor_publisher -->
+    <node name="recordor_and_convertor" pkg="sensor_publisher" type="recordor_and_convertor_node" required="true">
+
+	<!-- Rosbag -->
+	<!-- <arg name="record_bag_name" default="sample"/>
+	<node pkg="rosbag" type="record" name="record" output="screen"
+          		args="/livox/imu /livox/lidar /pylon_camera_publisher/image_raw -j -b 2048 -O /shared/bag/$(arg record_bag_name).bag"/> -->
+
+</launch>
