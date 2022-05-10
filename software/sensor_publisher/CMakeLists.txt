@@ -20,9 +20,15 @@ find_package(catkin REQUIRED COMPONENTS
 	std_msgs
 	message_generation
 	rosbag
+	nav_msgs
+	geometry_msgs
+	livox_ros_driver
+	cv_bridge
+	image_transport
 	)
 
 find_package(PCL REQUIRED)
+find_package(OpenCV REQUIRED)
 
 ###################################
 ## catkin specific configuration ##
@@ -34,7 +40,7 @@ find_package(PCL REQUIRED)
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also n    eed
 catkin_package(CATKIN_DEPENDS
-	roscpp rospy std_msgs message_runtime geometry_msgs nav_msgs roscpp rospy sensor_msgs 
+	roscpp rospy std_msgs message_runtime
 	)
 
 #---------------------------------------------------------------------------------------
@@ -54,7 +60,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 include_directories(
 	${catkin_INCLUDE_DIRS}
   	${PCL_INCLUDE_DIRS}
+	${OPENCV_INCLUDE_DIRS}
   	include)
 
 add_executable(recordor_and_convertor_node src/recordor_and_convertor.cpp)
-target_link_libraries(recordor_and_convertor_node ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+target_link_libraries(recordor_and_convertor_node ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OPENCV_LIBRARIES})

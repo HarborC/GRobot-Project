@@ -14,6 +14,10 @@
 #include <pcl/point_types.h>
 #include <pcl_conversions/pcl_conversions.h>
 
+#include <image_transport/image_transport.h>
+#include <opencv2/highgui/highgui.hpp>
+#include <cv_bridge/cv_bridge.h>
+
 #include <cmath>
 #include <ctime>
 #include <array>
@@ -72,21 +76,43 @@ void livoxLidarHandler(const livox_ros_driver::CustomMsgConstPtr& livox_msg_in) 
     sensor_msgs::PointCloud2 pcl_ros_msg;
     pcl::toROSMsg(pcl_in, pcl_ros_msg);
     pcl_ros_msg.header.stamp = timestamp;
-    std::string frame_id = "livox_lidar";
+    std::string frame_id = "livox_lidar_frame";
     pcl_ros_msg.header.frame_id = frame_id;
 
     pub_lidar.publish(pcl_ros_msg);
 }
 
 void livoxImuHandler(const sensor_msgs::Imu::ConstPtr& imu_msg_in) {
-    sensor_msgs::Imu imu_msg_out = imu_msg_in;
+    sensor_msgs::Imu::Ptr imu_msg_out(new sensor_msgs::Imu);
+    imu_msg_out->header = imu_msg_in->header;
+    imu_msg_out->angular_velocity = imu_msg_in->angular_velocity;
+    imu_msg_out->linear_acceleration = imu_msg_in->linear_acceleration;
+
+    imu_msg_out->orientation = imu_msg_in->orientation;
+    imu_msg_out->orientation_covariance = imu_msg_in->orientation_covariance;
+    imu_msg_out->angular_velocity_covariance = imu_msg_in->angular_velocity_covariance;
+    imu_msg_out->linear_acceleration_covariance = imu_msg_in->linear_acceleration_covariance;
+    
     record_database->record(imu_msg_out->header.stamp.toSec(), "livox_imu");
 
     pub_imu.publish(imu_msg_out);
 }
 
 void BaslerCameraHandler(const sensor_msgs::Image::ConstPtr& image_msg_in) {
-    sensor_msgs::Image image_msg_out = image_msg_in;
+    sensor_msgs::Image::Ptr image_msg_out(new sensor_msgs::Image);
+    image_msg_out->header = image_msg_in->header;
+    image_msg_out->height = image_msg_in->height;
+    image_msg_out->width = image_msg_in->width;
+    image_msg_out->is_bigendian = image_msg_in->is_bigendian;
+    image_msg_out->encoding = image_msg_in->encoding;
+    image_msg_out->step = image_msg_in->step;
+    image_msg_out->data = image_msg_in->data;
+
+    // cv_bridge::CvImageConstPtr bayer_ptr = cv_bridge::toCvCopy(image_msg_in, sensor_msgs::image_encodings::BAYER_RGGB8);
+    // cv::Mat bayer_img = bayer_ptr->image.clone();
+    // cv::Mat bgr_img; cvtColor(bayer_img, bgr_img, CV_BayerRG2BGR);
+    // sensor_msgs::Image::Ptr image_msg_out = cv_bridge::CvImage(image_msg_in->header, "bgr8", bgr_img).toImageMsg();
+
     record_database->record(image_msg_out->header.stamp.toSec(), "basler_image");
 
     pub_camera.publish(image_msg_out);
@@ -97,7 +123,7 @@ int main(int argc, char** argv) {
     ros::NodeHandle nh;
     ROS_INFO("\033[1;32m---->\033[0m Format Convert Started.");
 
-    record_database.reset(new RecordDatabase("sensor_record.txt"));
+    record_database.reset(new RecordDatabase("/shared/ws_sensors/sensor_record.txt"));
 
     ros::Subscriber sub_livox_lidar = nh.subscribe<livox_ros_driver::CustomMsg>("/livox/lidar", 100, livoxLidarHandler);
     pub_lidar = nh.advertise<sensor_msgs::PointCloud2>("/livox_lidar", 100);

@@ -116,7 +116,7 @@ gige:
   #  To prevent lost frames configure the camera has to be configured
   #  with the MTU size the network card supports. A value greater 3000
   #  should be good (1500 for RaspberryPI)
-  mtu_size: 4500
+  mtu_size: 1500
 
   #  Only used for GigE cameras.
   #  The inter-package delay in ticks to prevent lost frames.
